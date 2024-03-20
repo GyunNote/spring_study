@@ -1,5 +1,6 @@
 package com.study.library.config;
 
+import com.study.library.security.exception.AuthEntryPoint;
 import com.study.library.security.filter.JwtAuthenticationFilter;
 import com.study.library.security.filter.PermitAllFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Autowired
+    private AuthEntryPoint authEntryPoint;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder(){
@@ -33,10 +36,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
        http.authorizeRequests()
                .antMatchers("/server/**","/auth/**")
                .permitAll()
+               .antMatchers("/mail/authenticate")
+               .permitAll()
                .anyRequest()
                .authenticated()
                .and()
                .addFilterAfter(permitAllFilter, LogoutFilter.class)
-               .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+               .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+               .exceptionHandling()
+               .authenticationEntryPoint(authEntryPoint);
     }
 }
