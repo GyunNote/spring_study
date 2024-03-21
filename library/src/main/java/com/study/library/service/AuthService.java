@@ -1,5 +1,6 @@
 package com.study.library.service;
 
+import com.study.library.dto.OAuth2SignupReqDto;
 import com.study.library.dto.SigninReqDto;
 import com.study.library.dto.SignupReqDto;
 import com.study.library.entity.User;
@@ -29,6 +30,7 @@ public class AuthService {
     public boolean isDuplicatedByUsername(String username){
         return userMapper.findUserByUsername(username) != null;
     }
+
     @Transactional(rollbackFor = Exception.class)
     public void signup(SignupReqDto signupReqDto){
         int succesCount = 0;
@@ -40,6 +42,21 @@ public class AuthService {
             throw new SaveException();
         }
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void oAuth2Signup(OAuth2SignupReqDto oAuth2SignupReqDto){
+        int succesCount = 0;
+        User user = oAuth2SignupReqDto.toEntity(passwordEncoder);
+
+        succesCount += userMapper.saveUser(user);
+        succesCount += userMapper.saveRole(user.getUserId(),1);
+        succesCount += userMapper.saveOAuth2(oAuth2SignupReqDto.toOAuth2Entity(user.getUserId()));
+        if(succesCount < 3){
+            throw new SaveException();
+        }
+    }
+
+
     public String signin(SigninReqDto signinReqDto){
         User user = userMapper.findUserByUsername(signinReqDto.getUsername());
         if(user ==null){
